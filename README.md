@@ -431,7 +431,7 @@ alias hidefiles="defaults write com.apple.finder AppleShowAllFiles NO; killall F
 alias flushdns="sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder"
 
 # Lock your screen
-alias lock="/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend"
+alias lock="osascript -e 'tell application \"System Events\" to keystroke \"q\" using {command down,control down}'"
 ```
 
 ### App Shortcuts
