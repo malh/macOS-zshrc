@@ -88,29 +88,147 @@ alias paste="pbpaste"
 alias cpwd="pwd | tr -d '\n' | pbcopy"  # Copy current directory path
 
 # === Path Configuration ===
-# Homebrew - supports both Apple Silicon and Intel Macs
-if [[ -d "/opt/homebrew/bin" ]]; then
-  # Apple Silicon Mac
-  export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+# Homebrew - completely modular path handling for maximum compatibility
+# Support for standard locations, custom installations, and user preferences
+
+# First, try to find the brew command
+if [[ -x "/opt/homebrew/bin/brew" ]]; then
+  # Apple Silicon Mac (M1/M2/M3) standard location
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [[ -x "/usr/local/bin/brew" ]]; then
+  # Intel Mac standard location
+  eval "$(/usr/local/bin/brew shellenv)"
+elif [[ -x "$HOME/.homebrew/bin/brew" ]]; then
+  # User directory installation
+  eval "$($HOME/.homebrew/bin/brew shellenv)"
+elif [[ -x "$HOMEBREW_PREFIX/bin/brew" ]]; then
+  # User-specified custom location via HOMEBREW_PREFIX
+  eval "$($HOMEBREW_PREFIX/bin/brew shellenv)"
 else
-  # Intel Mac
-  export PATH="/usr/local/bin:/usr/local/sbin:$PATH"
+  # Fallback - try to find brew anywhere in PATH
+  if command -v brew >/dev/null; then
+    eval "$(brew shellenv)"
+  else
+    # Last resort - add common Homebrew paths if brew not found
+    for dir in "/opt/homebrew/bin" "/usr/local/bin" "$HOME/.homebrew/bin" "$HOME/.linuxbrew/bin" "/home/linuxbrew/.linuxbrew/bin"; do
+      [[ -d "$dir" ]] && export PATH="$dir:$PATH"
+    done
+  fi
 fi
 
-# NVM Configuration
-export NVM_DIR="$HOME/.nvm"
-[ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"
-[ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"
+# Add additional Homebrew environment variables (if Homebrew is installed)
+if command -v brew >/dev/null; then
+  export HOMEBREW_NO_ANALYTICS=1  # Disable analytics
+  export HOMEBREW_CASK_OPTS="--no-quarantine"  # Don't quarantine apps
+  export HOMEBREW_NO_ENV_HINTS=1  # Reduce hint messages
+fi
 
-# Anaconda Configuration
-export PATH="/opt/homebrew/anaconda3/bin:/usr/local/anaconda3/bin:$PATH"
+# NVM Configuration - flexible approach for any installation method
+export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"  # Allow custom NVM_DIR or default to ~/.nvm
+
+# Load NVM - try all possible locations
+if command -v brew >/dev/null && [[ -d "$(brew --prefix nvm 2>/dev/null)" ]]; then
+  # If Homebrew is available, use brew --prefix to find nvm precisely
+  source "$(brew --prefix nvm)/nvm.sh"
+  # Also load bash completion if available
+  [[ -s "$(brew --prefix nvm)/etc/bash_completion.d/nvm" ]] && source "$(brew --prefix nvm)/etc/bash_completion.d/nvm"
+elif [[ -s "$NVM_DIR/nvm.sh" ]]; then
+  # Standard NVM directory installation
+  source "$NVM_DIR/nvm.sh"
+  # Also load bash completion if available
+  [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
+elif [[ -s "/opt/homebrew/opt/nvm/nvm.sh" ]]; then
+  # Apple Silicon Homebrew path
+  source "/opt/homebrew/opt/nvm/nvm.sh"
+  [[ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ]] && source "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"
+elif [[ -s "/usr/local/opt/nvm/nvm.sh" ]]; then
+  # Intel Mac Homebrew path
+  source "/usr/local/opt/nvm/nvm.sh"
+  [[ -s "/usr/local/opt/nvm/etc/bash_completion.d/nvm" ]] && source "/usr/local/opt/nvm/etc/bash_completion.d/nvm"
+fi
+
+# Anaconda/Miniconda Configuration - modular version
+# Function to add conda to path and initialize if it exists
+_init_conda() {
+  local conda_path="$1"
+  if [[ -d "$conda_path/bin" ]]; then
+    # Add to PATH if not already there
+    [[ ":$PATH:" != *":$conda_path/bin:"* ]] && export PATH="$conda_path/bin:$PATH"
+    
+    # Initialize conda if the conda command exists
+    if [[ -x "$conda_path/bin/conda" ]]; then
+      # Set up conda initialization
+      # Commented out by default to speed up shell startup - uncomment if needed
+      # eval "$("$conda_path/bin/conda" "shell.zsh" "hook")"
+      return 0
+    fi
+  fi
+  return 1
+}
+
+# Try to find Conda installation in order of preference
+if [[ -n "$CONDA_PREFIX" ]]; then
+  # User has set their own Conda prefix
+  _init_conda "$CONDA_PREFIX"
+elif _init_conda "$HOME/miniconda3" || _init_conda "$HOME/anaconda3" ||
+     _init_conda "/opt/homebrew/anaconda3" || _init_conda "/usr/local/anaconda3" ||
+     _init_conda "/opt/miniconda3" || _init_conda "/opt/anaconda3"; then
+  # One of the common locations worked
+  true
+fi
+unset -f _init_conda  # Clean up the function
 
 # === Plugin Management ===
-# Syntax highlighting (requires brew install zsh-syntax-highlighting)
-[ -f /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ] && source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+# Function to source a plugin if it exists in any of the given locations
+_source_plugin() {
+  local plugin_name="$1"
+  shift
+  local locations=("$@")
+  
+  for location in "${locations[@]}"; do
+    if [[ -f "$location" ]]; then
+      source "$location"
+      return 0
+    fi
+  done
+  return 1
+}
 
-# Auto-suggestions (requires brew install zsh-autosuggestions)
-[ -f /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh ] && source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+# Syntax highlighting
+_source_plugin "zsh-syntax-highlighting" \
+  "$(brew --prefix zsh-syntax-highlighting 2>/dev/null)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
+  "/opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
+  "/usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
+  "/usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
+  "$HOME/.zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+
+# Auto-suggestions
+_source_plugin "zsh-autosuggestions" \
+  "$(brew --prefix zsh-autosuggestions 2>/dev/null)/share/zsh-autosuggestions/zsh-autosuggestions.zsh" \
+  "/opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh" \
+  "/usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh" \
+  "/usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh" \
+  "$HOME/.zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh"
+
+# fzf - fuzzy finder (requires brew install fzf)
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# autojump - smart directory navigation (requires brew install autojump)
+[ -f /opt/homebrew/etc/profile.d/autojump.sh ] && . /opt/homebrew/etc/profile.d/autojump.sh
+
+# Zoxide (alternative to autojump)
+if command -v zoxide >/dev/null; then
+  eval "$(zoxide init zsh)"
+fi
+
+# Clean up our helper function
+unset -f _source_plugin
+
+# bat - better cat with syntax highlighting
+if command -v bat >/dev/null; then
+  alias cat="bat --style=plain"
+  export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+fi
 
 # fzf - fuzzy finder (requires brew install fzf)
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
