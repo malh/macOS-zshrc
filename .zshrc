@@ -75,7 +75,7 @@ alias jl="jupyter lab"
 alias showfiles="defaults write com.apple.finder AppleShowAllFiles YES; killall Finder"
 alias hidefiles="defaults write com.apple.finder AppleShowAllFiles NO; killall Finder"
 alias flushdns="sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder"
-alias lock="/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend"
+alias lock="osascript -e 'tell application \"System Events\" to keystroke \"q\" using {command down,control down}'"   
 
 # Application shortcuts
 alias safari="open -a Safari"
