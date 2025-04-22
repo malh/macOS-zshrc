@@ -1,0 +1,22 @@
+# ~/.zsh_plugins.txt
+# List your Zsh plugins here for Antidote to manage.
+# Format: user/repo or user/repo kind:path path:*.plugin.zsh
+
+# --- Standard Plugins ---
+zsh-users/zsh-syntax-highlighting
+zsh-users/zsh-autosuggestions
+
+# --- Other Tools ---
+# fzf (Fuzzy Finder) - Is loaded via ~/.fzf.zsh sourced in .zshrc
+# Run: $(brew --prefix)/opt/fzf/install
+# junegunn/fzf
+
+# Directory Jumpers
+# Note: You should uncomment only ONE of these directory jumpers
+#       based on which one you installed during setup.
+
+# Option 1: autojump - Classic directory jumper
+# wting/autojump
+
+# Option 2: zoxide - Faster alternative to autojump
+# ajeetdsouza/zoxide kind:path path:zoxide.plugin.zsh

@@ -2,7 +2,7 @@
 
 Enhanced zsh config (zshrc) for macOS users who like their prompts fast and their eza pretty.
 
-A simple but powerful zsh setup made just for Mac. Makes your terminal look great and work better with colourful text, helpful shortcuts and smart features that remember where you've been. Perfect for coders or anyone who uses Terminal a lot but doesn't want to faff about with complicated setups.
+A modern zsh setup crafted for Mac users. Enhances your terminal with colorful text, useful shortcuts, and intelligent features while remaining lightweight and straightforward to use.
 
 ## Table of Contents
 
@@ -29,7 +29,7 @@ A simple but powerful zsh setup made just for Mac. Makes your terminal look grea
 
 ## Quick Look
 
-This zsh setup is specially made for Mac users who want their terminal to be both nicer to look at and easier to use. It takes the standard Mac terminal and gives it superpowers without getting too complicated.
+This zsh setup is designed for Mac users who want a more powerful and visually appealing terminal experience without unnecessary complexity. It enhances the standard macOS terminal with practical features that improve your workflow.
 
 You'll get:
 - A colourful command prompt that shows git info
@@ -54,70 +54,106 @@ You'll get:
 
 ## Setting It Up
 
-### Basic Setup
+### Prerequisites
 
-1. **Back up your current setup**:
-   ```bash
-   cp ~/.zshrc ~/.zshrc.backup
-   ```
+- **Homebrew**: The script will install it if missing, but having it pre-installed is recommended.
+- **Git**: Required for cloning this repository and eza themes.
 
-2. **Grab this repo**:
-   ```bash
-   git clone https://github.com/yourusername/macOS-zshrc.git
-   ```
+### Automated Installation
 
-3. **Copy the config file**:
-   ```bash
-   cp macOS-zshrc/.zshrc ~/.zshrc
-   ```
+1.  **Clone the repository**:
+    ```bash
+    git clone https://github.com/malh/macOS-zshrc.git
+    cd macOS-zshrc
+    ```
 
-4. **Install the recommended tools**:
-   ```bash
-   # Install the main tools
-   brew install eza bat fzf autojump zsh-syntax-highlighting zsh-autosuggestions
-   
-   # Set up fzf shortcuts
-   $(brew --prefix)/opt/fzf/install
-   
-   # Install a special font for icons
-   brew tap homebrew/cask-fonts
-   brew install --cask font-hack-nerd-font
-   ```
+2.  **Run the installation script**:
+    ```bash
+    bash install.sh
+    ```
+    *(Alternatively, make it executable first: `chmod +x install.sh` then `./install.sh`)*
 
-5. **Set up pretty file listings** (optional):
-   ```bash
-   # Create a config folder
-   mkdir -p ~/.config/eza
-   
-   # Get the themes
-   git clone https://github.com/eza-community/eza-themes.git ~/.config/eza/eza-themes
-   
-   # Link to your chosen theme
-   ln -sf ~/.config/eza/eza-themes/themes/default.yml ~/.config/eza/theme.yml
-   ```
+    During installation, you'll be prompted to choose between `autojump` and `zoxide` for directory jumping.
 
-6. **Restart your terminal**:
-   ```bash
-   source ~/.zshrc
-   ```
+3.  **Restart your terminal**: Open a new terminal window or tab, or run `source ~/.zshrc` in your existing one.
+
+4.  **Configure Terminal Font**: Set your terminal emulator's font to `Hack Nerd Font` (or another Nerd Font) to properly display icons.
+
+That's it! The script handles backing up existing files, installing dependencies, symlinking configurations, and setting up keybindings.
+
+### Manual Setup (Alternative)
+
+If you prefer not to use the script, you can still follow these steps:
+
+1.  **Back up your current setup**:
+    ```bash
+    cp ~/.zshrc ~/.zshrc.backup
+    cp ~/.zsh_plugins.txt ~/.zsh_plugins.txt.backup # If it exists
+    ```
+
+2.  **Clone this repo**:
+    ```bash
+    git clone https://github.com/yourusername/macOS-zshrc.git
+    ```
+
+3.  **Link the config files**:
+    ```bash
+    # From within the cloned macOS-zshrc directory
+    ln -sf "$(pwd)/.zshrc" ~/.zshrc
+    ln -sf "$(pwd)/.zsh_plugins.txt" ~/.zsh_plugins.txt 
+    ```
+
+4.  **Install the recommended tools**:
+    ```bash
+    # Install the main tools
+    brew install antidote eza bat fzf autojump font-hack-nerd-font
+    
+    # Set up fzf shortcuts
+    $(brew --prefix)/opt/fzf/install
+    ```
+
+5.  **Set up pretty file listings** (optional):
+    ```bash
+    # Create a config folder
+    mkdir -p ~/.config/eza
+    
+    # Get the themes
+    git clone https://github.com/eza-community/eza-themes.git ~/.config/eza/eza-themes
+    
+    # Link to your chosen theme
+    ln -sf ~/.config/eza/eza-themes/themes/default.yml ~/.config/eza/theme.yml
+    ```
+
+6.  **Restart your terminal**:
+    ```bash
+    source ~/.zshrc
+    ```
 
 ### Coming Soon
 
-I'm working on a setup script that will do all this automatically for you.
+- [ ] Consider using `brew bundle` with a `Brewfile` for dependency management.
+- [ ] Add more theme options for the command prompt.
 
 ## How It's Organised
 
-After you set everything up, you'll have:
+After you set everything up (using the script or manually), you'll typically have:
 
 ```
 ~
-├── .zshrc                      # Your main config file
+├── .zshrc                      # -> Symlink to repo/.zshrc
+├── .zsh_plugins.txt            # -> Symlink to repo/.zsh_plugins.txt
 ├── .zsh_history                # Where your command history is saved
-└── .config
-    └── eza                     # Settings for prettier file listings
-        ├── theme.yml           # Link to your active theme
-        └── eza-themes/         # Collection of available themes
-            └── themes/         # Folder with all the themes
+├── .config
+│   └── eza                     # Settings for prettier file listings
+│       ├── theme.yml           # -> Symlink to eza-themes/themes/default.yml
+│       └── eza-themes/         # Cloned theme collection
+│           └── themes/         # Folder with all the themes
+└── your/path/to/macOS-zshrc/   # The cloned repository folder
+    ├── .zshrc
+    ├── .zsh_plugins.txt
+    ├── install.sh
+    └── README.md
+    └── ... (other repo files)
 ```
 
 ## What Each Bit Does

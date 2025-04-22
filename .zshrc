@@ -179,69 +179,17 @@ fi
 unset -f _init_conda  # Clean up the function
 
 # === Plugin Management ===
-# Function to source a plugin if it exists in any of the given locations
-_source_plugin() {
-  local plugin_name="$1"
-  shift
-  local locations=("$@")
-  
-  for location in "${locations[@]}"; do
-    if [[ -f "$location" ]]; then
-      source "$location"
-      return 0
-    fi
-  done
-  return 1
-}
-
-# Syntax highlighting
-_source_plugin "zsh-syntax-highlighting" \
-  "$(brew --prefix zsh-syntax-highlighting 2>/dev/null)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
-  "/opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
-  "/usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
-  "/usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
-  "$HOME/.zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
-
-# Auto-suggestions
-_source_plugin "zsh-autosuggestions" \
-  "$(brew --prefix zsh-autosuggestions 2>/dev/null)/share/zsh-autosuggestions/zsh-autosuggestions.zsh" \
-  "/opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh" \
-  "/usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh" \
-  "/usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh" \
-  "$HOME/.zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh"
-
-# fzf - fuzzy finder (requires brew install fzf)
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
-# autojump - smart directory navigation (requires brew install autojump)
-[ -f /opt/homebrew/etc/profile.d/autojump.sh ] && . /opt/homebrew/etc/profile.d/autojump.sh
-
-# Zoxide (alternative to autojump)
-if command -v zoxide >/dev/null; then
-  eval "$(zoxide init zsh)"
-fi
-
-# Clean up our helper function
-unset -f _source_plugin
-
-# bat - better cat with syntax highlighting
-if command -v bat >/dev/null; then
-  alias cat="bat --style=plain"
-  export MANPAGER="sh -c 'col -bx | bat -l man -p'"
-fi
-
-# fzf - fuzzy finder (requires brew install fzf)
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
-# autojump - smart directory navigation (requires brew install autojump)
-[ -f /opt/homebrew/etc/profile.d/autojump.sh ] && . /opt/homebrew/etc/profile.d/autojump.sh
-
-# zoxide - smarter cd command (alternative to autojump)
-if command -v zoxide >/dev/null; then
-  eval "$(zoxide init zsh)"
+# Load Antidote. This assumes you've installed it (e.g., brew install antidote)
+# It sources ~/.zsh_plugins.txt to load your plugins.
+if [[ -f "$(brew --prefix antidote)/share/antidote/antidote.zsh" ]]; then
+  source "$(brew --prefix antidote)/share/antidote/antidote.zsh"
+  antidote load
+else
+  echo "Antidote not found. Please install it (e.g., brew install antidote)."
 fi
 
 # bat - better cat with syntax highlighting
+# Note: Bat is not a zsh plugin, so its alias/config remains here
 if command -v bat >/dev/null; then
   alias cat="bat --style=plain"
   export MANPAGER="sh -c 'col -bx | bat -l man -p'"
@@ -324,3 +272,32 @@ backup() {
 # === User Customizations ===
 # Add your custom configurations below this line
 # so they won't be overwritten when updating this file
+
+# Load directory jumper (autojump or zoxide)
+# The install script configures one of these options
+
+# Option 1: Load autojump if installed via Homebrew
+if command -v brew &>/dev/null && command -v autojump &>/dev/null; then
+  AUTOJUMP_SCRIPT="$(brew --prefix autojump 2>/dev/null)/etc/profile.d/autojump.sh"
+  if [[ -z "$AUTOJUMP_SCRIPT" ]] || [[ ! -f "$AUTOJUMP_SCRIPT" ]]; then
+    # Fallback to common direct paths if brew --prefix fails or doesn't exist
+    if [[ -f "/opt/homebrew/etc/profile.d/autojump.sh" ]]; then
+      AUTOJUMP_SCRIPT="/opt/homebrew/etc/profile.d/autojump.sh"
+    elif [[ -f "/usr/local/etc/profile.d/autojump.sh" ]]; then
+      AUTOJUMP_SCRIPT="/usr/local/etc/profile.d/autojump.sh"
+    fi
+  fi
+  
+  # Source the script if found
+  if [[ -f "$AUTOJUMP_SCRIPT" ]]; then
+    . "$AUTOJUMP_SCRIPT"
+  fi
+  unset AUTOJUMP_SCRIPT # Clean up variable
+fi
+
+# Option 2: Initialize zoxide if installed
+if command -v zoxide &>/dev/null; then
+  eval "$(zoxide init zsh)"
+fi
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
