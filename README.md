@@ -1,8 +1,10 @@
 # macOS-zshrc
 
+Enhanced zsh config (zshrc) for macOS users who like their prompts fast and their eza pretty.
+
 A simple but powerful zsh setup made just for Mac. Makes your terminal look great and work better with colourful text, helpful shortcuts and smart features that remember where you've been. Perfect for coders or anyone who uses Terminal a lot but doesn't want to faff about with complicated setups.
 
-## 📋 What's Inside
+## Table of Contents
 
 - [Quick Look](#quick-look)
 - [Cool Features](#cool-features)
@@ -25,7 +27,7 @@ A simple but powerful zsh setup made just for Mac. Makes your terminal look grea
 - [Contributing](#contributing)
 - [Licence](#licence)
 
-## 🚀 Quick Look
+## Quick Look
 
 This zsh setup is specially made for Mac users who want their terminal to be both nicer to look at and easier to use. It takes the standard Mac terminal and gives it superpowers without getting too complicated.
 
@@ -38,7 +40,7 @@ You'll get:
 - Pretty file listings with colours and icons
 - Useful little functions that save you time
 
-## ✨ Cool Features
+## Cool Features
 
 - **Nicer Command Prompt**: Shows your username, computer name, current folder, and git branch
 - **Smart History**: Doesn't save duplicates and shares history between terminal windows
@@ -48,8 +50,9 @@ You'll get:
 - **Works With Popular Add-ons**: Easy to use with other popular terminal tools
 - **Helper Functions**: Little tools for common jobs like extracting archives
 - **Theming Support**: Makes your file listings look nice with colour themes
+- **Ultra Compatibility**: Works on any Mac setup without needing to change paths
 
-## 📥 Setting It Up
+## Setting It Up
 
 ### Basic Setup
 
@@ -102,7 +105,7 @@ You'll get:
 
 I'm working on a setup script that will do all this automatically for you.
 
-## 📂 How It's Organised
+## How It's Organised
 
 After you set everything up, you'll have:
 
@@ -117,7 +120,7 @@ After you set everything up, you'll have:
             └── themes/         # Folder with all the themes
 ```
 
-## ⚙️ What Each Bit Does
+## What Each Bit Does
 
 ### Basic Settings
 
@@ -231,45 +234,44 @@ These shortcuts make common tasks faster:
 ### System Paths
 
 ```bash
-# Homebrew
-export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+# Homebrew - completely modular detection and setup
+if [[ -x "/opt/homebrew/bin/brew" ]]; then
+  # Apple Silicon Mac (M1/M2/M3) standard location
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [[ -x "/usr/local/bin/brew" ]]; then
+  # Intel Mac standard location
+  eval "$(/usr/local/bin/brew shellenv)"
+else
+  # Fallback - try to find brew anywhere in PATH
+  if command -v brew >/dev/null; then
+    eval "$(brew shellenv)"
+  fi
+fi
 
-# NVM Setup
-export NVM_DIR="$HOME/.nvm"
-[ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"
-[ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"
-
-# Anaconda Setup
-export PATH="/opt/homebrew/anaconda3/bin:/usr/local/anaconda3/bin:$PATH"
+# NVM and Anaconda use similarly smart detection
 ```
 
-Makes sure your Mac can find:
-- Homebrew programs
-- Node.js version manager (nvm)
-- Anaconda Python
+This setup makes sure your Mac can find all the necessary programs on any system:
+- **Smart Homebrew detection**: Works with any Homebrew installation (Apple Silicon, Intel, or custom)
+- **Flexible NVM configuration**: Finds Node.js version manager wherever it's installed
+- **Adaptive Anaconda/Miniconda paths**: Supports multiple Python distribution locations
+- **Plugin path flexibility**: Finds plugins regardless of how they were installed
 
 ### Extra Tools
 
 ```bash
-# Syntax highlighting (makes commands colourful)
-[ -f /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ] && source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+# Uses a clever helper function to find plugins regardless of installation method
+_source_plugin "zsh-syntax-highlighting" \
+  "$(brew --prefix zsh-syntax-highlighting 2>/dev/null)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
+  "/opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
+  "/usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
+  "/usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
+  "$HOME/.zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 
-# Auto-suggestions (suggests commands as you type)
-[ -f /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh ] && source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-
-# fzf - fuzzy finder for files and history
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
-# autojump - smart folder jumping
-[ -f /opt/homebrew/etc/profile.d/autojump.sh ] && . /opt/homebrew/etc/profile.d/autojump.sh
-
-# zoxide - another smart cd command
-if command -v zoxide >/dev/null; then
-  eval "$(zoxide init zsh)"
-fi
+# Similar approach for other plugins
 ```
 
-Adds some really useful extras:
+Adds some really useful extras that work on any Mac:
 - **Syntax Highlighting**: Makes commands colourful as you type
 - **Auto-suggestions**: Shows grey text suggesting commands from history
 - **fzf**: Fuzzy finder that makes searching history and files much easier
@@ -352,7 +354,7 @@ Handy little tools to save you time:
 - **qfind**: Finds files by name without the annoying permission errors
 - **colors_demo**: Shows all the colours your terminal can display
 
-## 🎨 Making File Lists Pretty
+## Making File Lists Pretty
 
 This setup uses `eza` instead of the old `ls` command, which gives you much prettier file listings:
 
@@ -387,7 +389,7 @@ The file listing shortcuts (`ls`, `ll`, etc.) are set up to show icons. For thes
 
 2. Set your terminal to use this font (in your terminal preferences)
 
-## 🔌 Extra Tools Worth Adding
+## Extra Tools Worth Adding
 
 This setup works with several useful add-ons:
 
@@ -406,7 +408,7 @@ This setup works with several useful add-ons:
 - **diff-so-fancy**: Nicer-looking git diffs
 - **tmux**: Like having multiple terminal windows in one
 
-## 🍎 Mac-Specific Features
+## Mac-Specific Features
 
 This setup has some special bits just for Mac:
 
@@ -452,7 +454,7 @@ alias paste="pbpaste"
 alias cpwd="pwd | tr -d '\n' | pbcopy"  # Copy current folder path
 ```
 
-## 🛠️ Making It Your Own
+## Making It Your Own
 
 ### Changing the Prompt
 
@@ -490,7 +492,7 @@ backup() {
 }
 ```
 
-## 📋 Fixing Common Problems
+## Fixing Common Problems
 
 ### Icons Not Showing Up
 
@@ -514,20 +516,18 @@ If your prompt doesn't look right:
 2. Make sure the git info is set up properly
 3. Try a simpler prompt to narrow down the problem
 
-## 🔄 Compatibility
+## Compatibility
 
-This setup works well on:
+This setup works with any Mac configuration:
 
-- macOS Monterey (12.x)
-- macOS Ventura (13.x)
-- macOS Sonoma (14.x)
-- macOS 15+ (2025)
+- **Any macOS version**: Works on Monterey (12.x), Ventura (13.x), Sonoma (14.x), and newer
+- **Any Mac hardware**: Automatically adapts for Intel or Apple Silicon (M1/M2/M3)
+- **Any installation method**: Finds your tools no matter how they were installed
+- **Custom directories**: Respects your custom installation paths and preferences
 
-It works on both Intel Macs and Apple Silicon Macs (M1/M2/M3) with the right paths for each type.
+You can use this .zshrc file as-is without tweaking paths for your specific setup - it will intelligently detect the right locations for everything.
 
-Older macOS versions (Catalina and earlier) might need some path adjustments.
-
-## 📱 Works Well With Other Mac Tools
+## Works Well With Other Mac Tools
 
 This setup plays nicely with other Mac customisation tools:
 
@@ -538,7 +538,7 @@ This setup plays nicely with other Mac customisation tools:
 
 For more Mac goodness, check out [awesome-mac](https://github.com/jaywcjlove/awesome-mac).
 
-## 💪 Terminal Power Tips
+## Terminal Power Tips
 
 - Use `Ctrl+R` to search your command history
 - Use `Alt+C` to fuzzy-find folders to go to
@@ -546,7 +546,7 @@ For more Mac goodness, check out [awesome-mac](https://github.com/jaywcjlove/awe
 - Use `extract archive.tar.gz` instead of remembering all those tar flags
 - Create shortcuts for commands you use all the time
 
-## 🤝 Contributing
+## Contributing
 
 Got ideas to make this better? Please share!
 
@@ -556,6 +556,6 @@ Got ideas to make this better? Please share!
 4. Push to the branch: `git push origin feature/my-cool-idea`
 5. Send a pull request
 
-## 📄 Licence
+## Licence
 
 This project is licensed under the MIT Licence - see the LICENSE file for details.
